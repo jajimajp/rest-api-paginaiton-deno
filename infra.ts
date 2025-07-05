@@ -21,5 +21,9 @@ export const bookRepository: BookRepository = {
   listBooks() {
     const books = db.prepare("select * from book").all<Book>();
     return books;
+  },
+  showBook(id: string): Book | undefined {
+    const book = db.prepare("select * from book where id = ?").get<Book>(id);
+    return book;
   }
 };
