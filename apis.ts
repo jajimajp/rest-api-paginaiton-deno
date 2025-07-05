@@ -7,7 +7,7 @@ type HandlerGenerator = (repo: BookRepository) => (req: Request) => Response | P
 
 const listBooks: HandlerGenerator = (repo: BookRepository) => (_req: Request): Response => {
   const books = repo.listBooks();
-  return new Response(JSON.stringify(books));
+  return new Response(JSON.stringify(books), { headers: { "Content-Type": "application/json" } });
 }
 
 const SHOW_BOOK_URL_PATTERN = new URLPattern({ pathname: "/books/:id" });
@@ -24,7 +24,7 @@ const showBook: HandlerGenerator = (repo: BookRepository) => (req: Request): Res
   if (!book) {
     return new Response("Not found", { status: 404 });
   }
-  return new Response(JSON.stringify(book));
+  return new Response(JSON.stringify(book), { headers: { "Content-Type": "application/json" } });
 }
 
 const createBook: HandlerGenerator = (repo: BookRepository) => async (req: Request): Promise<Response> => {
@@ -34,7 +34,7 @@ const createBook: HandlerGenerator = (repo: BookRepository) => async (req: Reque
       return new Response("Bad request: title is required", { status: 400 });
     }
     const book = repo.createBook(body.title);
-    return new Response(JSON.stringify(book), { status: 201 });
+    return new Response(JSON.stringify(book), { status: 201, headers: { "Content-Type": "application/json" } });
   } catch (_error) {
     return new Response("Bad request: invalid JSON", { status: 400 });
   }
