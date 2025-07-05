@@ -26,5 +26,10 @@ export const bookRepository: BookRepository = {
   showBook(id: string): Book | undefined {
     const book = db.prepare("select * from book where id = ?").get<Book>(id);
     return book;
+  },
+  createBook(title: string): Book {
+    const id = ulid();
+    db.exec("insert into book (id, title) values (?, ?)", id, title);
+    return { id, title };
   }
 };

@@ -27,11 +27,26 @@ const showBook: HandlerGenerator = (repo: BookRepository) => (req: Request): Res
   return new Response(JSON.stringify(book));
 }
 
+const createBook: HandlerGenerator = (repo: BookRepository) => async (req: Request): Promise<Response> => {
+  try {
+    const body = await req.json();
+    if (!body.title || typeof body.title !== 'string') {
+      return new Response("Bad request: title is required", { status: 400 });
+    }
+    const book = repo.createBook(body.title);
+    return new Response(JSON.stringify(book), { status: 201 });
+  } catch (_error) {
+    return new Response("Bad request: invalid JSON", { status: 400 });
+  }
+}
+
 /** Route definitions for books */
 const ROUTES : RawRouteDef[] =
   [ ["GET", new URLPattern({ pathname: "/books" }),     listBooks]
   , ["GET", new URLPattern({ pathname: "/books/" }),    listBooks]
   , ["GET", new URLPattern({ pathname: "/books/:id" }), showBook]
+  , ["POST", new URLPattern({ pathname: "/books" }),    createBook]
+  , ["POST", new URLPattern({ pathname: "/books/" }),   createBook]
   ]
 
 export function newRouteDefs(repo: BookRepository): RouteDef[] {
