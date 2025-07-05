@@ -31,5 +31,9 @@ export const bookRepository: BookRepository = {
     const id = ulid();
     db.exec("insert into book (id, title) values (?, ?)", id, title);
     return { id, title };
+  },
+  deleteBook(id: string): boolean {
+    const count = db.prepare("delete from book where id = ?").run(id);
+    return count > 0;
   }
 };

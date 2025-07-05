@@ -40,13 +40,31 @@ const createBook: HandlerGenerator = (repo: BookRepository) => async (req: Reque
   }
 }
 
+const DELETE_BOOK_URL_PATTERN = new URLPattern({ pathname: "/books/:id" });
+const deleteBook: HandlerGenerator = (repo: BookRepository) => (req: Request): Response => {
+  const match = DELETE_BOOK_URL_PATTERN.exec(req.url);
+  if (!match) {
+    return new Response("Not found", { status: 404 });
+  }
+  const id = match.pathname.groups.id
+  if (!id) {
+    return new Response("Not found", { status: 404 });
+  }
+  const deleted = repo.deleteBook(id);
+  if (!deleted) {
+    return new Response("Not found", { status: 404 });
+  }
+  return new Response(null, { status: 204 });
+}
+
 /** Route definitions for books */
 const ROUTES : RawRouteDef[] =
-  [ ["GET", new URLPattern({ pathname: "/books" }),     listBooks]
-  , ["GET", new URLPattern({ pathname: "/books/" }),    listBooks]
-  , ["GET", new URLPattern({ pathname: "/books/:id" }), showBook]
-  , ["POST", new URLPattern({ pathname: "/books" }),    createBook]
-  , ["POST", new URLPattern({ pathname: "/books/" }),   createBook]
+  [ ["GET", new URLPattern({ pathname: "/books" }),        listBooks]
+  , ["GET", new URLPattern({ pathname: "/books/" }),       listBooks]
+  , ["GET", new URLPattern({ pathname: "/books/:id" }),    showBook]
+  , ["POST", new URLPattern({ pathname: "/books" }),       createBook]
+  , ["POST", new URLPattern({ pathname: "/books/" }),      createBook]
+  , ["DELETE", new URLPattern({ pathname: "/books/:id" }), deleteBook]
   ]
 
 export function newRouteDefs(repo: BookRepository): RouteDef[] {
