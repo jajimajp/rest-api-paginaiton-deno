@@ -8,13 +8,14 @@ import type { Book, BookRepository } from "./book.ts";
 
 const db = new Database(":memory:");
 db.exec(
-  "create table if not exists book (id text primary key)"
+  "create table if not exists book (id text primary key, title text not null)"
 )
 
 // seed
 db.exec(
-  "insert into book (id) values (?)",
+  "insert into book (id, title) values (?, ?)",
   ulid(),
+  "Sample Book Title"
 );
 
 export const bookRepository: BookRepository = {
