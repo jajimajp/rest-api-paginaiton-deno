@@ -32,6 +32,13 @@ export const bookRepository: BookRepository = {
     db.exec("insert into book (id, title) values (?, ?)", id, title);
     return { id, title };
   },
+  updateBook(id: string, title: string): Book | undefined {
+    const count = db.prepare("update book set title = ? where id = ?").run(title, id);
+    if (count > 0) {
+      return { id, title };
+    }
+    return undefined;
+  },
   deleteBook(id: string): boolean {
     const count = db.prepare("delete from book where id = ?").run(id);
     return count > 0;

@@ -40,6 +40,31 @@ const createBook: HandlerGenerator = (repo: BookRepository) => async (req: Reque
   }
 }
 
+const UPDATE_BOOK_URL_PATTERN = new URLPattern({ pathname: "/books/:id" });
+const updateBook: HandlerGenerator = (repo: BookRepository) => async (req: Request): Promise<Response> => {
+  const match = UPDATE_BOOK_URL_PATTERN.exec(req.url);
+  if (!match) {
+    return new Response("Not found", { status: 404 });
+  }
+  const id = match.pathname.groups.id
+  if (!id) {
+    return new Response("Not found", { status: 404 });
+  }
+  try {
+    const body = await req.json();
+    if (!body.title || typeof body.title !== 'string') {
+      return new Response("Bad request: title is required", { status: 400 });
+    }
+    const updatedBook = repo.updateBook(id, body.title);
+    if (!updatedBook) {
+      return new Response("Not found", { status: 404 });
+    }
+    return new Response(JSON.stringify(updatedBook), { headers: { "Content-Type": "application/json" } });
+  } catch (_error) {
+    return new Response("Bad request: invalid JSON", { status: 400 });
+  }
+}
+
 const DELETE_BOOK_URL_PATTERN = new URLPattern({ pathname: "/books/:id" });
 const deleteBook: HandlerGenerator = (repo: BookRepository) => (req: Request): Response => {
   const match = DELETE_BOOK_URL_PATTERN.exec(req.url);
@@ -64,6 +89,7 @@ const ROUTES : RawRouteDef[] =
   , ["GET", new URLPattern({ pathname: "/books/:id" }),    showBook]
   , ["POST", new URLPattern({ pathname: "/books" }),       createBook]
   , ["POST", new URLPattern({ pathname: "/books/" }),      createBook]
+  , ["PUT", new URLPattern({ pathname: "/books/:id" }),    updateBook]
   , ["DELETE", new URLPattern({ pathname: "/books/:id" }), deleteBook]
   ]
 
