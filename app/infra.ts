@@ -5,6 +5,7 @@
 import { Database } from "jsr:@db/sqlite";
 import { ulid } from "jsr:@std/ulid@1";
 import type { Book, BookRepository } from "./book.ts";
+import { faker } from "https://esm.sh/@faker-js/faker@v9.9.0";
 
 const db = new Database(":memory:");
 db.exec(
@@ -12,11 +13,13 @@ db.exec(
 );
 
 // seed
-db.exec(
-  "insert into book (id, title) values (?, ?)",
-  ulid(),
-  "Sample Book Title",
-);
+for (let i = 0; i < 100; i++) {
+  db.exec(
+    "insert into book (id, title) values (?, ?)",
+    ulid(),
+    faker.book.title(),
+  );
+}
 
 export const bookRepository: BookRepository = {
   listBooks() {

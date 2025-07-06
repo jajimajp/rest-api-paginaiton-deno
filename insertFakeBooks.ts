@@ -20,7 +20,7 @@ if (Deno.args.length > 0) {
 console.log(`Inserting ${N} fake books...`);
 
 for (let i = 0; i < N; i++) {
-  const title = faker.lorem.sentence();
+  const title = faker.book.title();
   fetch("http://localhost:8000/api/books", {
     method: "POST",
     headers: {
