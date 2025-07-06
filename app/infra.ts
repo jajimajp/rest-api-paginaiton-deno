@@ -4,7 +4,12 @@
 
 import { Database } from "jsr:@db/sqlite";
 import { ulid } from "jsr:@std/ulid@1";
-import type { Book, BookRepository } from "./book.ts";
+import type {
+  Book,
+  BookRepository,
+  PaginatedBooksResponse,
+  PaginationParams,
+} from "./book.ts";
 import { faker } from "https://esm.sh/@faker-js/faker@v9.9.0";
 
 const db = new Database(":memory:");
@@ -22,9 +27,43 @@ for (let i = 0; i < 100; i++) {
 }
 
 export const bookRepository: BookRepository = {
-  listBooks() {
-    const books = db.prepare("select * from book").all<Book>();
-    return books;
+  listBooks(params?: PaginationParams): PaginatedBooksResponse {
+    const limit = Math.min(params?.limit || 20, 100);
+    const pageToken = params?.pageToken;
+
+    // Get total count
+    const totalCount =
+      db.prepare("select count(*) as count from book").get<{ count: number }>()
+        ?.count || 0;
+
+    // Build query with cursor-based pagination
+    let query = "select * from book";
+    const queryParams: string[] = [];
+
+    if (pageToken) {
+      query += " where id > ?";
+      queryParams.push(pageToken);
+    }
+
+    query += " order by id limit ?";
+    queryParams.push((limit + 1).toString());
+
+    // Fetch one extra item to determine if there are more results
+    const books = db.prepare(query).all<Book>(...queryParams);
+
+    const hasMore = books.length > limit;
+    const resultBooks = hasMore ? books.slice(0, limit) : books;
+    const nextPageToken = hasMore
+      ? resultBooks[resultBooks.length - 1].id
+      : undefined;
+
+    return {
+      books: resultBooks,
+      nextPageToken,
+      hasMore,
+      totalCount,
+      pageSize: resultBooks.length,
+    };
   },
   showBook(id: string): Book | undefined {
     const book = db.prepare("select * from book where id = ?").get<Book>(id);

@@ -1,9 +1,18 @@
-import type { Book } from "./types.d.ts";
+import type { Book, PaginatedBooksResponse } from "./types.d.ts";
 
 export const booksApi = {
-  async fetchBooks(signal?: AbortSignal): Promise<Book[]> {
+  async fetchBooks(
+    pageToken?: string,
+    signal?: AbortSignal,
+  ): Promise<PaginatedBooksResponse> {
+    const params = new URLSearchParams();
+    params.set("limit", "20");
+    if (pageToken) {
+      params.set("page_token", pageToken);
+    }
+
     const options = signal ? { signal } : {};
-    const res = await fetch("/api/books", options);
+    const res = await fetch(`/api/books?${params}`, options);
     if (!res.ok) {
       throw new Error("Request failed");
     }

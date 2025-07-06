@@ -1,8 +1,28 @@
-import React from "https://esm.sh/react@19";
+import React, { useEffect } from "https://esm.sh/react@19";
 import { useBooks } from "./useBooks.ts";
+import { useQueryParams } from "./useQueryParams.ts";
 
 export function App() {
-  const { books, createBook, deleteBook, loading } = useBooks();
+  const { searchParams, updateURL } = useQueryParams();
+  const pageToken = searchParams.get("pageToken");
+  const {
+    books,
+    createBook,
+    deleteBook,
+    loading,
+    hasMore,
+    goToNextPage: goToNextPageBase,
+    totalCount,
+  } = useBooks(pageToken ?? undefined);
+
+  const goToNextPage = () => {
+    const pageToken = goToNextPageBase();
+    if (pageToken !== undefined) {
+      searchParams.delete("pageToken");
+      searchParams.set("pageToken", pageToken);
+      updateURL(searchParams);
+    }
+  };
 
   const submitBook = (formData: FormData) => {
     const title = formData.get("title")?.toString();
@@ -17,6 +37,9 @@ export function App() {
   if (!loading) {
     list = (
       <main>
+        <div style={{ marginBottom: "1rem" }}>
+          <p>Total books: {totalCount}</p>
+        </div>
         <ul>
           {books.map((book) => (
             <li key={book.id}>
@@ -39,6 +62,16 @@ export function App() {
         </form>
       </header>
       {list}
+      <footer>
+        <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
+          <button
+            onClick={goToNextPage}
+            disabled={!hasMore}
+          >
+            Next
+          </button>
+        </div>
+      </footer>
     </>
   );
 }

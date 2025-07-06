@@ -9,17 +9,29 @@ servers:
 paths:
   /api/books:
     get:
-      summary: List all books
+      summary: List all books with cursor-based pagination
       operationId: listBooks
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: page_token
+          in: query
+          description: Page token for cursor-based pagination
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Book'
+                $ref: "#/components/schemas/PaginatedBooksResponse"
     post:
       summary: Create a new book
       operationId: createBook
@@ -28,20 +40,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateBookRequest'
+              $ref: "#/components/schemas/CreateBookRequest"
       responses:
-        '201':
+        "201":
           description: Book created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
-        '400':
+                $ref: "#/components/schemas/Book"
+        "400":
           description: Bad request - invalid or missing title
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
   /api/books/{id}:
     parameters:
       - name: id
@@ -54,18 +66,18 @@ paths:
       summary: Get a book by ID
       operationId: getBook
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
-        '404':
+                $ref: "#/components/schemas/Book"
+        "404":
           description: Book not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
     put:
       summary: Update a book
       operationId: updateBook
@@ -74,40 +86,68 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateBookRequest'
+              $ref: "#/components/schemas/UpdateBookRequest"
       responses:
-        '200':
+        "200":
           description: Book updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
-        '400':
+                $ref: "#/components/schemas/Book"
+        "400":
           description: Bad request - invalid or missing title
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Book not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
     delete:
       summary: Delete a book
       operationId: deleteBook
       responses:
-        '204':
+        "204":
           description: Book deleted successfully
-        '404':
+        "404":
           description: Book not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
+    PaginatedBooksResponse:
+      type: object
+      required:
+        - books
+        - has_more
+        - total_count
+      properties:
+        books:
+          type: array
+          description: List of books in the current page
+          items:
+            $ref: "#/components/schemas/Book"
+        next_page_token:
+          type: string
+          description: Token to fetch the next page of results
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+        has_more:
+          type: boolean
+          description: Whether there are more results available
+          example: true
+        total_count:
+          type: integer
+          description: Total number of books in the collection
+          example: 100
+        page_size:
+          type: integer
+          description: Number of items in the current page
+          example: 20
     Book:
       type: object
       required:

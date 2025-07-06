@@ -8,14 +8,32 @@ type HandlerGenerator = (
 ) => (req: Request) => Response | Promise<Response>;
 
 const listBooks: HandlerGenerator =
-  (repo: BookRepository) => (_req: Request): Response => {
-    const books = repo.listBooks();
-    return new Response(JSON.stringify(books), {
+  (repo: BookRepository) => (req: Request): Response => {
+    const url = new URL(req.url);
+    const limitParam = url.searchParams.get("limit");
+    const pageToken = url.searchParams.get("page_token");
+
+    const params = {
+      limit: limitParam ? parseInt(limitParam, 10) : undefined,
+      pageToken: pageToken || undefined,
+    };
+
+    const response = repo.listBooks(params);
+
+    const apiResponse = {
+      books: response.books,
+      next_page_token: response.nextPageToken,
+      has_more: response.hasMore,
+      total_count: response.totalCount,
+      page_size: response.pageSize,
+    };
+
+    return new Response(JSON.stringify(apiResponse), {
       headers: { "Content-Type": "application/json" },
     });
   };
 
-const SHOW_BOOK_URL_PATTERN = new URLPattern({ pathname: "/books/:id" });
+const SHOW_BOOK_URL_PATTERN = new URLPattern({ pathname: "/api/books/:id" });
 const showBook: HandlerGenerator =
   (repo: BookRepository) => (req: Request): Response => {
     const match = SHOW_BOOK_URL_PATTERN.exec(req.url);
@@ -52,7 +70,7 @@ const createBook: HandlerGenerator =
     }
   };
 
-const UPDATE_BOOK_URL_PATTERN = new URLPattern({ pathname: "/books/:id" });
+const UPDATE_BOOK_URL_PATTERN = new URLPattern({ pathname: "/api/books/:id" });
 const updateBook: HandlerGenerator =
   (repo: BookRepository) => async (req: Request): Promise<Response> => {
     const match = UPDATE_BOOK_URL_PATTERN.exec(req.url);
@@ -80,7 +98,7 @@ const updateBook: HandlerGenerator =
     }
   };
 
-const DELETE_BOOK_URL_PATTERN = new URLPattern({ pathname: "/books/:id" });
+const DELETE_BOOK_URL_PATTERN = new URLPattern({ pathname: "/api/books/:id" });
 const deleteBook: HandlerGenerator =
   (repo: BookRepository) => (req: Request): Response => {
     const match = DELETE_BOOK_URL_PATTERN.exec(req.url);
@@ -100,24 +118,17 @@ const deleteBook: HandlerGenerator =
 
 /** Route definitions for books */
 const ROUTES: RawRouteDef[] = [
-  ["GET", new URLPattern({ pathname: "/books" }), listBooks],
-  ["GET", new URLPattern({ pathname: "/books/" }), listBooks],
-  ["GET", new URLPattern({ pathname: "/books/:id" }), showBook],
-  ["POST", new URLPattern({ pathname: "/books" }), createBook],
-  ["POST", new URLPattern({ pathname: "/books/" }), createBook],
-  ["PUT", new URLPattern({ pathname: "/books/:id" }), updateBook],
-  ["DELETE", new URLPattern({ pathname: "/books/:id" }), deleteBook],
+  ["GET", new URLPattern({ pathname: "/api/books" }), listBooks],
+  ["GET", new URLPattern({ pathname: "/api/books/" }), listBooks],
+  ["GET", new URLPattern({ pathname: "/api/books/:id" }), showBook],
+  ["POST", new URLPattern({ pathname: "/api/books" }), createBook],
+  ["POST", new URLPattern({ pathname: "/api/books/" }), createBook],
+  ["PUT", new URLPattern({ pathname: "/api/books/:id" }), updateBook],
+  ["DELETE", new URLPattern({ pathname: "/api/books/:id" }), deleteBook],
 ];
-
-const prependApiPrefix = (pattern: URLPattern): URLPattern => {
-  return new URLPattern({
-    ...pattern,
-    pathname: `/api${pattern.pathname}`,
-  });
-};
 
 export function newRouteDefs(repo: BookRepository): RouteDef[] {
   return ROUTES.map((
     [method, pattern, handler],
-  ) => [method, prependApiPrefix(pattern), handler(repo)]);
+  ) => [method, pattern, handler(repo)]);
 }
