@@ -1,0 +1,2 @@
+ui:
+	$(MAKE) -C ui

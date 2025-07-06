@@ -3,6 +3,8 @@
  * It provides a way to start a server with a set of routes.
  */
 
+import { serveDir } from "jsr:@std/http/file-server";
+
 export type RouteDef = [Request['method'], URLPattern, (req: Request) => Response | Promise<Response>];
 
 /**
@@ -27,7 +29,7 @@ function newRouter(routes: RouteDef[]): (req: Request) => Response | Promise<Res
       }
     }
 
-    return new Response("Not found", { status: 404 });
+    return serveDir(req, { fsRoot: "ui/dist" });
+    // return new Response("Not found", { status: 404 });
   }
 }
-
