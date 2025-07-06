@@ -109,8 +109,15 @@ const ROUTES: RawRouteDef[] = [
   ["DELETE", new URLPattern({ pathname: "/books/:id" }), deleteBook],
 ];
 
+const prependApiPrefix = (pattern: URLPattern): URLPattern => {
+  return new URLPattern({
+    ...pattern,
+    pathname: `/api${pattern.pathname}`,
+  });
+};
+
 export function newRouteDefs(repo: BookRepository): RouteDef[] {
   return ROUTES.map((
     [method, pattern, handler],
-  ) => [method, pattern, handler(repo)]);
+  ) => [method, prependApiPrefix(pattern), handler(repo)]);
 }

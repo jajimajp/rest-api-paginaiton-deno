@@ -3,7 +3,7 @@ import type { Book } from "./types.d.ts";
 export const booksApi = {
   async fetchBooks(signal?: AbortSignal): Promise<Book[]> {
     const options = signal ? { signal } : {};
-    const res = await fetch("/books", options);
+    const res = await fetch("/api/books", options);
     if (!res.ok) {
       throw new Error("Request failed");
     }
@@ -19,7 +19,7 @@ export const booksApi = {
     if (signal) {
       options.signal = signal;
     }
-    const res = await fetch("/books", options);
+    const res = await fetch("/api/books", options);
     if (!res.ok) {
       throw new Error("Request failed");
     }
@@ -31,7 +31,7 @@ export const booksApi = {
     if (signal) {
       options.signal = signal;
     }
-    const res = await fetch(`/books/${id}`, options);
+    const res = await fetch(`/api/books/${id}`, options);
     if (!res.ok) {
       throw new Error("Request failed");
     }

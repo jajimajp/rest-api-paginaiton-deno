@@ -21,7 +21,7 @@ console.log(`Inserting ${N} fake books...`);
 
 for (let i = 0; i < N; i++) {
   const title = faker.lorem.sentence();
-  fetch("http://localhost:8000/books", {
+  fetch("http://localhost:8000/api/books", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
