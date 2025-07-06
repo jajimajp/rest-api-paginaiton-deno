@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: Books API
+  description: REST API for managing a collection of books
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+paths:
+  /api/books:
+    get:
+      summary: List all books
+      operationId: listBooks
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+    post:
+      summary: Create a new book
+      operationId: createBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookRequest'
+      responses:
+        '201':
+          description: Book created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Bad request - invalid or missing title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/books/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Book ID (ULID format)
+        schema:
+          type: string
+    get:
+      summary: Get a book by ID
+      operationId: getBook
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '404':
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a book
+      operationId: updateBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBookRequest'
+      responses:
+        '200':
+          description: Book updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Bad request - invalid or missing title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a book
+      operationId: deleteBook
+      responses:
+        '204':
+          description: Book deleted successfully
+        '404':
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Book:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+          description: Unique identifier in ULID format
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+        title:
+          type: string
+          description: Book title
+          example: "The Great Gatsby"
+    CreateBookRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Book title
+          minLength: 1
+          example: "To Kill a Mockingbird"
+    UpdateBookRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: New book title
+          minLength: 1
+          example: "1984"
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Book not found"
