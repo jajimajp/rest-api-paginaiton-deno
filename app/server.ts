@@ -4,6 +4,7 @@
  */
 
 import { serveDir } from "jsr:@std/http/file-server";
+import { config } from "./config.ts";
 
 export type RouteDef = [
   Request["method"],
@@ -35,7 +36,7 @@ function newRouter(
       }
     }
 
-    return serveDir(req, { fsRoot: "ui/dist" });
+    return serveDir(req, { fsRoot: config.uiAssetsRoot });
     // return new Response("Not found", { status: 404 });
   };
 }
